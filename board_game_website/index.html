@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Permainan Board Alam Melayu</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Georgia,serif;
+  background:#f4ead7;color:#2d2117;
+}
+header{
+  background:linear-gradient(135deg,#5b1f16,#8b3f24);
+  color:#fff;padding:28px 18px;text-align:center;
+  border-bottom:6px solid #c99b4b;
+}
+h1{margin:0 0 8px;font-size:30px}
+header p{margin:0;opacity:.9}
+nav{
+  display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  padding:14px;background:#ead5b0;position:sticky;top:0;z-index:5;
+}
+nav button,.btn{
+  border:0;border-radius:12px;padding:12px 17px;
+  background:#6d281b;color:#fff;font-weight:bold;cursor:pointer;
+}
+nav button:hover,.btn:hover{opacity:.88}
+main{max-width:850px;margin:auto;padding:20px}
+.section{
+  display:none;background:#fffaf0;border:2px solid #c99b4b;
+  border-radius:18px;padding:22px;margin-bottom:20px;
+  box-shadow:0 5px 18px #0001;
+}
+.section.active{display:block}
+.card{
+  background:#f4ead7;border-radius:16px;padding:22px;text-align:center;
+}
+.dice{
+  width:130px;height:130px;margin:20px auto;
+  background:#fff;border:5px solid #6d281b;border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:65px;font-family:Arial,sans-serif;font-weight:bold;
+}
+.question{
+  min-height:100px;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:2px dashed #c99b4b;border-radius:14px;
+  padding:20px;font-size:21px;font-weight:bold;margin:18px 0;
+}
+input,textarea{
+  width:100%;padding:13px;border:2px solid #c99b4b;
+  border-radius:10px;font:inherit;margin:8px 0 12px;
+}
+textarea{min-height:100px;resize:vertical}
+.list{margin-top:15px}
+.item{
+  background:#fff;border:1px solid #dcc49b;border-radius:10px;
+  padding:10px;margin:7px 0;display:flex;gap:10px;align-items:center;
+}
+.item span{flex:1}
+.delete{background:#9b2c20;color:white;border:0;border-radius:8px;padding:7px 10px;cursor:pointer}
+.small{font-size:14px;color:#66574a}
+footer{text-align:center;padding:25px;color:#66574a}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PERMAINAN BOARD MELAYU</h1>
+  <p>Panduan • Dadu • Soalan Rawak</p>
+</header>
+
+<nav>
+  <button onclick="showSection('cara')">📖 Cara Bermain</button>
+  <button onclick="showSection('dadu')">🎲 Dadu</button>
+  <button onclick="showSection('kuiz')">❓ Soalan Rawak</button>
+  <button onclick="showSection('urus')">➕ Urus Soalan</button>
+</nav>
+
+<main>
+<section id="cara" class="section active">
+  <h2>📖 Cara Bermain</h2>
+  <p>Letakkan penerangan cara bermain board game anda di sini.</p>
+  <p>AKAN DIUBAH SESUAI!!!</p>
+  <ol>
+    <li>Setiap pemain memilih satu pahlawan (merah/biru).</li>
+    <li>Giliran pemain ditentukan mengikut peraturan permainan.</li>
+    <li>Tekan butang <b>ROLL DICE</b> untuk mendapatkan nombor langkah.</li>
+    <li>Gerakkan buah mengikut nombor yang diperoleh.</li>
+    <li>Jika mendarat pada petak kuiz, buka bahagian <b>Soalan Rawak</b>.</li>
+    <li>Tekan <b>SOALAN RAWAK</b> dan jawab soalan yang diberikan.</li>
+  </ol>
+  <p class="small">Semua teks di atas boleh diubah mengikut peraturan board game anda.</p>
+</section>
+
+<section id="dadu" class="section">
+  <h2>🎲 Dadu</h2>
+  <div class="card">
+    <p>Tekan butang untuk membaling dadu.</p>
+    <div id="dice" class="dice">⚀</div>
+    <button class="btn" onclick="rollDice()">LEMPAR DADU</button>
+    <p id="diceText"></p>
+  </div>
+</section>
+
+<section id="kuiz" class="section">
+  <h2>❓ Soalan Rawak</h2>
+  <div class="card">
+    <p>Tekan butang untuk mendapatkan soalan secara rawak.</p>
+    <div id="question" class="question">Soalan akan muncul di sini.</div>
+    <button class="btn" onclick="randomQuestion()">SOALAN RAWAK</button>
+  </div>
+</section>
+
+<section id="urus" class="section">
+  <h2>➕ Tambah / Urus Soalan</h2>
+  <p>Taip soalan sendiri di bawah. Soalan akan disimpan dalam browser ini.</p>
+  <textarea id="newQuestion" placeholder="Contoh: Apakah nama senjata tradisional Melayu yang digunakan dalam permainan ini?"></textarea>
+  <button class="btn" onclick="addQuestion()">TAMBAH SOALAN</button>
+
+  <div class="list" id="questionList"></div>
+  <p class="small">Tip: Anda boleh tambah sebanyak mana soalan yang diperlukan.</p>
+</section>
+</main>
+
+<footer>
+  Board Game Melayu • Website sokongan permainan
+</footer>
+
+<script>
+const defaultQuestions = [
+  "Apakah nama watak utama dalam cerita ini?",
+  "Apakah senjata tradisional Melayu yang digunakan?",
+  "Apakah pengajaran yang boleh diperoleh daripada cerita ini?"
+];
+
+let questions = JSON.parse(localStorage.getItem("boardQuestions")) || defaultQuestions;
+
+function saveQuestions(){
+  localStorage.setItem("boardQuestions", JSON.stringify(questions));
+  renderQuestions();
+}
+
+function showSection(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function rollDice(){
+  const dice = document.getElementById("dice");
+  const text = document.getElementById("diceText");
+  let count=0;
+  const timer=setInterval(()=>{
+    const n=Math.floor(Math.random()*6)+1;
+    dice.textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][n-1];
+    count++;
+    if(count>=10){
+      clearInterval(timer);
+      text.textContent="Anda mendapat nombor " + n + "!";
+    }
+  },80);
+}
+
+function randomQuestion(){
+  if(questions.length===0){
+    document.getElementById("question").textContent="Belum ada soalan. Tambah soalan dahulu.";
+    return;
+  }
+  const q=questions[Math.floor(Math.random()*questions.length)];
+  document.getElementById("question").textContent=q;
+}
+
+function addQuestion(){
+  const input=document.getElementById("newQuestion");
+  const q=input.value.trim();
+  if(!q){alert("Sila masukkan soalan dahulu.");return;}
+  questions.push(q);
+  saveQuestions();
+  input.value="";
+  alert("Soalan berjaya ditambah!");
+}
+
+function deleteQuestion(index){
+  questions.splice(index,1);
+  saveQuestions();
+}
+
+function renderQuestions(){
+  const list=document.getElementById("questionList");
+  list.innerHTML="";
+  if(questions.length===0){
+    list.innerHTML="<p class='small'>Tiada soalan lagi.</p>";
+    return;
+  }
+  questions.forEach((q,i)=>{
+    const div=document.createElement("div");
+    div.className="item";
+    div.innerHTML="<span>"+(i+1)+". "+escapeHtml(q)+"</span>";
+    const btn=document.createElement("button");
+    btn.className="delete";
+    btn.textContent="Padam";
+    btn.onclick=()=>deleteQuestion(i);
+    div.appendChild(btn);
+    list.appendChild(div);
+  });
+}
+
+function escapeHtml(text){
+  const d=document.createElement("div");
+  d.textContent=text;
+  return d.innerHTML;
+}
+
+renderQuestions();
+</script>
+</body>
+</html>
